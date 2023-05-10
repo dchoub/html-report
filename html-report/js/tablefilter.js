@@ -21,9 +21,15 @@
     $(document).on('change', '.filter-dropdown', function() {
       var columnIndex = $(this).closest('th').index();
       var selectedValue = $(this).val().toLowerCase();
+      
+      $('table tbody tr').hide(); // Hide all rows initially
+      
+      // Filter the rows based on the selected value
       $('table tbody tr').each(function() {
         var cellValue = $(this).find('td').eq(columnIndex).text().toLowerCase();
-        $(this).toggle(selectedValue === '' || cellValue === selectedValue);
+        if (selectedValue === '' || cellValue === selectedValue) {
+          $(this).show();
+        }
       });
     });
     
