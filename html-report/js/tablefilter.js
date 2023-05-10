@@ -23,7 +23,9 @@
       });
       
       // Append the dropdown menu to the column header
-      $(this).append(dropdown);
+      var dropdownContainer = $('<div class="dropdown-menu">');
+      dropdownContainer.append(dropdown);
+      $(this).append(dropdownContainer);
       placeholder.text(' ▼');
     });
     
