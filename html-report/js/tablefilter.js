@@ -1,9 +1,9 @@
 <script>
   $(document).ready(function() {
-    $('th.filterable').on('click', function(e) {
+    $('th.filterable .dropdown-button').on('click', function(e) {
       e.stopPropagation(); // Prevent the event from bubbling up
       
-      var dropdown = $(this).find('.filter-dropdown');
+      var dropdown = $(this).siblings('.filter-dropdown');
       dropdown.toggle();
     });
     
@@ -13,7 +13,7 @@
     });
     
     // Prevent hiding the dropdown menu when clicking inside it
-    $(document).on('click', '.filter-dropdown', function(e) {
+    $(document).on('click', '.filter-dropdown, th.filterable .dropdown-button', function(e) {
       e.stopPropagation();
     });
     
@@ -30,7 +30,10 @@
     // Generate the dropdown menus for each filterable column
     $('th.filterable').each(function() {
       var columnIndex = $(this).index();
+      var dropdownContainer = $('<div class="dropdown-container">');
+      var dropdownButton = $('<div class="dropdown-button">▼</div>');
       var dropdown = $('<select class="filter-dropdown">');
+      
       dropdown.append('<option value="">All</option>');
       
       var values = [];
@@ -42,7 +45,9 @@
         }
       });
       
-      $(this).append(dropdown);
+      dropdownContainer.append(dropdownButton);
+      dropdownContainer.append(dropdown);
+      $(this).append(dropdownContainer);
     });
   });
 </script>
