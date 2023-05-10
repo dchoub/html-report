@@ -22,15 +22,18 @@
       var columnIndex = $(this).closest('th').index();
       var selectedValue = $(this).val().toLowerCase();
       
-      $('table tbody tr').hide(); // Hide all rows initially
+      $('table tbody tr').hide(); // Hide all data rows initially
       
-      // Filter the rows based on the selected value
+      // Filter the data rows based on the selected value
       $('table tbody tr').each(function() {
         var cellValue = $(this).find('td').eq(columnIndex).text().toLowerCase();
         if (selectedValue === '' || cellValue === selectedValue) {
           $(this).show();
         }
       });
+      
+      // Show the header row
+      $('table thead tr').show();
     });
     
     // Generate the dropdown menus for each filterable column
