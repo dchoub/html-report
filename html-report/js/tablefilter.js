@@ -26,5 +26,23 @@
         $(this).toggle(selectedValue === '' || cellValue === selectedValue);
       });
     });
+    
+    // Generate the dropdown menus for each filterable column
+    $('th.filterable').each(function() {
+      var columnIndex = $(this).index();
+      var dropdown = $('<select class="filter-dropdown">');
+      dropdown.append('<option value="">All</option>');
+      
+      var values = [];
+      $('table tbody tr').each(function() {
+        var cellValue = $(this).find('td').eq(columnIndex).text().trim();
+        if (!values.includes(cellValue)) {
+          values.push(cellValue);
+          dropdown.append('<option value="' + cellValue + '">' + cellValue + '</option>');
+        }
+      });
+      
+      $(this).append(dropdown);
+    });
   });
 </script>
