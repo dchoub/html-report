@@ -1520,3 +1520,32 @@ svg#pie-chart {
     font-style: italic;
     font-size: medium;
 }
+<style>
+    .dropdown-container {
+      position: relative;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    .dropdown-button {
+      display: inline-block;
+      cursor: pointer;
+      padding: 5px;
+      background-color: #f2f2f2;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    .filter-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 100px;
+      padding: 5px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      display: none;
+    }
+  </style>
