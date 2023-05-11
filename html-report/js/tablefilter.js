@@ -1,62 +1,69 @@
-<script>
-  $(document).ready(function() {
-    $('th.filterable .dropdown-button').on('click', function(e) {
-      e.stopPropagation(); // Prevent the event from bubbling up
-      
-      var dropdown = $(this).siblings('.filter-dropdown');
-      dropdown.toggle();
-    });
-    
-    // Hide dropdown menus when clicking outside
-    $(document).on('click', function() {
-      $('.filter-dropdown').hide();
-    });
-    
-    // Prevent hiding the dropdown menu when clicking inside it
-    $(document).on('click', '.filter-dropdown, th.filterable .dropdown-button', function(e) {
-      e.stopPropagation();
-    });
-    
-    // Apply filtering when selecting an option from the dropdown menu
-    $(document).on('change', '.filter-dropdown', function() {
-      var columnIndex = $(this).closest('th').index();
-      var selectedValue = $(this).val().toLowerCase();
-      
-      $('table tbody tr').hide(); // Hide all data rows initially
-      
-      // Filter the data rows based on the selected value
-      $('table tbody tr').each(function() {
-        var cellValue = $(this).find('td').eq(columnIndex).text().toLowerCase();
-        if (selectedValue === '' || cellValue === selectedValue) {
-          $(this).show();
-        }
+$(document).ready(function() {
+  var table = $('#example').DataTable({
+    // Enable pagination
+    paging: true,
+
+    // Add the dropdowns to the header cells
+    initComplete: function() {
+      this.api().columns('.filterable').every(function() {
+        var column = this;
+        var columnIndex = column.index();
+        var header = $(column.header());
+
+        // Create the dropdown container
+        var dropdownContainer = $('<div class="dropdown-container">');
+        header.append(dropdownContainer);
+
+        // Create the dropdown button
+        var dropdownButton = $('<div class="dropdown-button">▼</div>');
+        dropdownContainer.append(dropdownButton);
+
+        // Create the dropdown
+        var dropdown = $('<select class="filter-dropdown">');
+        dropdown.append('<option value="">All</option>');
+
+        // Populate the dropdown with unique values from the column
+        column.data().unique().sort().each(function(value) {
+          if (value !== '') {
+            dropdown.append('<option value="' + value + '">' + value + '</option>');
+          }
+        });
+        dropdownContainer.append(dropdown);
+
+        // Apply filtering when selecting an option from the dropdown menu
+        dropdown.on('change', function() {
+          var selectedValue = $(this).val().toLowerCase();
+          column.search(selectedValue).draw();
+        });
+
+        // Hide dropdown menus when clicking outside
+        $(document).on('click', function() {
+          dropdownContainer.removeClass('active');
+        });
+
+        // Show/hide dropdown menus when clicking on the dropdown button
+        dropdownButton.on('click', function(e) {
+          e.stopPropagation(); // Prevent the event from bubbling up
+          dropdownContainer.toggleClass('active');
+        });
+
+        // Prevent hiding the dropdown menu when clicking inside it
+        dropdownContainer.on('click', function(e) {
+          e.stopPropagation();
+        });
       });
-      
-      // Show the header row
-      $('table thead tr').show();
-    });
-    
-    // Generate the dropdown menus for each filterable column
-    $('th.filterable').each(function() {
-      var columnIndex = $(this).index();
-      var dropdownContainer = $('<div class="dropdown-container">');
-      var dropdownButton = $('<div class="dropdown-button">▼</div>');
-      var dropdown = $('<select class="filter-dropdown">');
-      
-      dropdown.append('<option value="">All</option>');
-      
-      var values = [];
-      $('table tbody tr').each(function() {
-        var cellValue = $(this).find('td').eq(columnIndex).text().trim();
-        if (!values.includes(cellValue)) {
-          values.push(cellValue);
-          dropdown.append('<option value="' + cellValue + '">' + cellValue + '</option>');
-        }
+    },
+
+    // Callback function to keep the filter dropdowns visible after pagination
+    drawCallback: function() {
+      $('.dropdown-container.active').each(function() {
+        var columnIndex = $(this).closest('th').index();
+        var selectedValue = $(this).find('.filter-dropdown').val();
+        var column = table.column(columnIndex);
+
+        // Apply the filter to the new table data
+        column.search(selectedValue).draw();
       });
-      
-      dropdownContainer.append(dropdownButton);
-      dropdownContainer.append(dropdown);
-      $(this).append(dropdownContainer);
-    });
+    }
   });
-</script>
+});
