@@ -1,27 +1,6 @@
-$(document).ready(function() {
-  // Initialize DataTable
-  var table = $('#myTable').DataTable();
-
-  // Add character limit and "See More" functionality
-  table.cells('.limit-text').every(function() {
-    var cell = this;
-    var cellData = $(cell.node()).text();
-    var limit = 50; // Define the character limit
-
-    if (cellData.length > limit) {
-      var truncatedText = cellData.substring(0, limit) + '...';
-      var fullText = cellData;
-      var showMoreHtml = '<span class="expand-link">See More</span>';
-
-      $(cell.node()).addClass('truncated').attr('data-full-text', fullText).html(truncatedText + showMoreHtml);
+if ($(this).hasClass('expand-link')) {
+      $(cell.node()).removeClass('truncated').html(fullText + ' <span class="collapse-link">See Less</span>');
+    } else {
+      $(cell.node()).addClass('truncated').html(fullText.substring(0, limit) + '... <span class="expand-link">See More</span>');
     }
   });
-
-  // Handle "See More" link click event
-  $('#myTable').on('click', '.expand-link', function() {
-    var cell = table.cell(this.parentNode);
-    var fullText = $(this).parent().attr('data-full-text');
-
-    $(cell.node()).removeClass('truncated').html(fullText);
-  });
-});
