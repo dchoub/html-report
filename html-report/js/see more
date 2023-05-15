@@ -1,12 +1,19 @@
 $(document).ready(function() {
-  $('.collapsible').click(function() {
-    $(this).toggleClass('collapsed');
-    var icon = $(this).find('i');
+  $('.collapsible i').click(function(event) {
+    event.stopPropagation();
 
-    if ($(this).hasClass('collapsed')) {
+    var parentDiv = $(this).closest('.collapsible');
+    var messageDiv = parentDiv.find('.message');
+    var icon = parentDiv.find('i');
+
+    parentDiv.toggleClass('collapsed');
+
+    if (parentDiv.hasClass('collapsed')) {
       icon.removeClass('fa-minus-square').addClass('fa-plus-square');
+      messageDiv.slideUp();
     } else {
       icon.removeClass('fa-plus-square').addClass('fa-minus-square');
+      messageDiv.slideDown();
     }
   });
 });
