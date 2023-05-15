@@ -1,0 +1,36 @@
+$(document).ready(function() {
+  $('.limit-text').each(function() {
+    var fullText = $(this).text();
+    var limit = 50; // Define the character limit
+    if (fullText.length > limit) {
+      var truncatedText = fullText.substring(0, limit) + '...';
+      var html = truncatedText + ' <span class="expand-link">See More</span>';
+      $(this).html(html);
+    }
+  });
+
+  $('.expand-link').click(function() {
+    var fullText = $(this).parent().text();
+    $(this).parent().html(fullText + ' <span class="collapse-link">See Less</span>');
+  });
+
+  $('body').on('click', '.collapse-link', function() {
+    var fullText = $(this).parent().text();
+    var limit = 50; // Define the character limit
+    var truncatedText = fullText.substring(0, limit) + '...';
+    $(this).parent().html(truncatedText + ' <span class="expand-link">See More</span>');
+  });
+});
+
+
+.limit-text {
+  max-width: 200px; /* Set the maximum width for the cell */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expand-link {
+  color: blue;
+  cursor: pointer;
+}
