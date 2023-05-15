@@ -1,6 +1,12 @@
-if ($(this).hasClass('expand-link')) {
-      $(cell.node()).removeClass('truncated').html(fullText + ' <span class="collapse-link">See Less</span>');
+$(document).ready(function() {
+  $('.collapsible').click(function() {
+    $(this).toggleClass('collapsed');
+    var icon = $(this).find('i');
+
+    if ($(this).hasClass('collapsed')) {
+      icon.removeClass('fa-minus-square').addClass('fa-plus-square');
     } else {
-      $(cell.node()).addClass('truncated').html(fullText.substring(0, limit) + '... <span class="expand-link">See More</span>');
+      icon.removeClass('fa-plus-square').addClass('fa-minus-square');
     }
   });
+});
