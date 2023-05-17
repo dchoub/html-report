@@ -1,19 +1,43 @@
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background-color: #f2f2f2;
+  transition: width 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+#sidebar.collapsed {
+  width: 50px;
+}
+
+.sidebar-content {
+  padding: 10px;
+}
+
+.toggle-icon {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  cursor: pointer;
+}
+
+.fa-minus,
+.fa-plus {
+  transition: transform 0.3s ease-in-out;
+}
+
+#toggleButton.collapsed {
+  transform: rotate(180deg);
+}
+
+
+
 $(document).ready(function() {
-  $('.collapsible i').click(function(event) {
-    event.stopPropagation();
-
-    var parentDiv = $(this).closest('.collapsible');
-    var messageDiv = parentDiv.find('.message');
-    var icon = parentDiv.find('i');
-
-    parentDiv.toggleClass('collapsed');
-
-    if (parentDiv.hasClass('collapsed')) {
-      icon.removeClass('fa-minus-square').addClass('fa-plus-square');
-      messageDiv.slideUp();
-    } else {
-      icon.removeClass('fa-plus-square').addClass('fa-minus-square');
-      messageDiv.slideDown();
-    }
+  $('#toggleButton').click(function() {
+    $('#sidebar').toggleClass('collapsed');
+    $(this).toggleClass('collapsed');
   });
 });
