@@ -1,46 +1,6 @@
-#sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  height: 100%;
-  background-color: #f2f2f2;
-  transition: width 0.3s ease-in-out;
-  overflow: hidden;
-}
-
-#sidebar.collapsed {
-  width: 50px;
-}
-
-.sidebar-content {
-  padding: 10px;
-}
-
-.toggle-icon {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  cursor: pointer;
-}
-
-.fa-minus,
-.fa-plus {
-  transition: transform 0.3s ease-in-out;
-}
-
-#toggleButton.collapsed {
-  transform: rotate(180deg);
-}
-
-
-
-$(document).ready(function() {
-  $('#toggleButton').click(function() {
-    $('#sidebar').toggleClass('collapsed');
-    $(this).toggleClass('collapsed');
-  });
-});
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+$(this).toggleClass('selected');
+  if ($(this).hasClass('selected')) {
+    $(this).css('background-color', 'gray');
+  } else {
+    $(this).css('background-color', 'blue');
+  }
