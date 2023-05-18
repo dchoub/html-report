@@ -1,6 +1,55 @@
-$(this).toggleClass('selected');
-  if ($(this).hasClass('selected')) {
-    $(this).css('background-color', 'gray');
-  } else {
-    $(this).css('background-color', 'blue');
-  }
+var visibleColumns = 20; // Number of columns to initially display
+var columnsPerPage = 20; // Number of columns to show per page
+var totalColumns = table.columns().header().length; // Total number of columns
+
+// Hide all toggle column links initially
+$('a.toggle-vis').hide();
+
+// Show the toggle column links for the initially visible columns
+$('a.toggle-vis:lt(' + visibleColumns + ')').show();
+
+// Show the "See More" link if there are more columns to show
+if (totalColumns > visibleColumns) {
+  var $seeMoreLink = $('<a href="#" class="see-more-link">See More</a>');
+  $seeMoreLink.on('click', function (e) {
+    e.preventDefault();
+    
+    // Calculate the last column index to show
+    var lastColumnIndex = visibleColumns + columnsPerPage;
+    
+    // Show the toggle column links for the next set of columns
+    $('a.toggle-vis:lt(' + lastColumnIndex + ')').show();
+    
+    // Update the visibleColumns value
+    visibleColumns = lastColumnIndex;
+    
+    // Hide the "See More" link if all columns are shown
+    if (visibleColumns >= totalColumns) {
+      $(this).hide();
+    }
+    
+    // Show the "See Less" link
+    $seeLessLink.show();
+  });
+
+  // Show the "See Less" link initially (hidden by default)
+  var $seeLessLink = $('<a href="#" class="see-less-link" style="display:none;">See Less</a>');
+  $seeLessLink.on('click', function (e) {
+    e.preventDefault();
+    
+    // Hide the toggle column links for the extra columns
+    $('a.toggle-vis:gt(' + (visibleColumns - 1) + ')').hide();
+    
+    // Update the visibleColumns value
+    visibleColumns = 20;
+    
+    // Hide the "See Less" link
+    $(this).hide();
+    
+    // Show the "See More" link
+    $seeMoreLink.show();
+  });
+
+  // Add the "See More" and "See Less" links to your desired element
+  $('.your-links-container').append($seeMoreLink, $seeLessLink);
+}
