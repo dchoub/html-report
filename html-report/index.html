@@ -1,9 +1,86 @@
-# Function to update a method parameter in Python code
-def update_method_parameter(python_code, parameter_name, new_value):
-    # Regular expression pattern to find the method call with the given parameter
-    pattern = re.compile(rf'(\w+\.{parameter_name}\s*=\s*)([^\n]*?)(,|\))')
-    
-    # Replace the parameter value in the method call
-    python_code = pattern.sub(rf'\1{new_value}\3', python_code)
-    
-    return python_code
+import pandas as pd
+import os
+import shutil
+import ast
+import astor
+
+# Function to create or update test case Python files
+def create_or_update_test_cases(test_folder, excel_data, original_python_file):
+    for index, row in excel_data.iterrows():
+        test_case_name = row['test_case_name']
+        python_file_path = os.path.join(test_folder, f'test_{test_case_name}.py')
+
+        # Check if the test case Python file already exists
+        if os.path.isfile(python_file_path):
+            # Read the existing Python file
+            with open(python_file_path, 'r') as file:
+                python_code = file.read()
+
+            # Parse the Python code into an Abstract Syntax Tree (AST)
+            parsed_code = ast.parse(python_code)
+
+            # Update method parameters with values from Excel
+            for column in excel_data.columns:
+                excel_value = row[column]
+                if not pd.isna(excel_value):
+                    # Use AST to update method parameters
+                    parsed_code = update_method_parameter(parsed_code, column, excel_value)
+
+            # Generate updated Python code from the modified AST
+            updated_code = astor.to_source(parsed_code)
+
+            # Write the modified code back to the test case Python file
+            with open(python_file_path, 'w') as file:
+                file.write(updated_code)
+
+            print(f"Updated test case {test_case_name} in {python_file_path}")
+        else:
+            # Create a new test case Python file based on the original Python file template
+            shutil.copy(original_python_file, python_file_path)
+
+            # Read the newly created Python file
+            with open(python_file_path, 'r') as file:
+                python_code = file.read()
+
+            # Parse the Python code into an Abstract Syntax Tree (AST)
+            parsed_code = ast.parse(python_code)
+
+            # Update method parameters with values from Excel
+            for column in excel_data.columns:
+                excel_value = row[column]
+                if not pd.isna(excel_value):
+                    # Use AST to update method parameters
+                    parsed_code = update_method_parameter(parsed_code, column, excel_value)
+
+            # Generate updated Python code from the modified AST
+            updated_code = astor.to_source(parsed_code)
+
+            # Write the modified code back to the new test case Python file
+            with open(python_file_path, 'w') as file:
+                file.write(updated_code)
+
+            print(f"Created/Updated test case {test_case_name} in {python_file_path}")
+
+# Function to update a method parameter in Python code using AST
+def update_method_parameter(node, parameter_name, new_value):
+    if isinstance(node, ast.Call):
+        for arg in node.args:
+            if isinstance(arg, ast.keyword) and arg.arg == parameter_name:
+                arg.value = ast.parse(new_value).body[0].value
+    for child in ast.iter_child_nodes(node):
+        update_method_parameter(child, parameter_name, new_value)
+    return node
+
+# Input Excel file path, test folder path, and original Python file path
+excel_file_path = 'test_data.xlsx'
+test_folder_path = 'test_folder'
+original_python_file = 'original_test_file.py'
+
+# Create the test folder if it doesn't exist
+os.makedirs(test_folder_path, exist_ok=True)
+
+# Read the Excel file with test case details
+excel_data = pd.read_excel(excel_file_path)
+
+# Create or update test cases based on Excel data
+create_or_update_test_cases(test_folder_path, excel_data, original_python_file)
