@@ -1,1 +1,9 @@
-excel_value = f"[{', '.join([f'{val.strip()}' for val in excel_value.split(',')])}]"
+# Function to update a method parameter in Python code
+def update_method_parameter(python_code, parameter_name, new_value):
+    # Regular expression pattern to find the method call with the given parameter
+    pattern = re.compile(rf'(\w+\.{parameter_name}\s*=\s*)([^\n]*?)(,|\))')
+    
+    # Replace the parameter value in the method call
+    python_code = pattern.sub(rf'\1{new_value}\3', python_code)
+    
+    return python_code
