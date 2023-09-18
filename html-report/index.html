@@ -12,3 +12,19 @@ def update_method_parameter(method_call, param_name, new_value):
     updated_method_call = pattern.sub(fr'\1"{new_value}"', method_call)
 
     return updated_method_call
+
+
+
+
+
+
+
+def update_test_case(python_code, variable_mapping, method_param_mapping):
+    for var_name, var_value in variable_mapping.items():
+        python_code = python_code.replace(f'{{{var_name}}}', var_value)
+    
+    for param_name, param_value in method_param_mapping.items():
+        pattern = re.compile(rf'({param_name}\s*=\s*)[^\s,]+')
+        python_code = pattern.sub(fr'\1"{param_value}"', python_code)
+    
+    return python_code
