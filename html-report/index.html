@@ -30,9 +30,10 @@ def update_test_case(python_code, variable_mapping, method_param_mapping):
     return python_code
 
 
-pattern = re.compile(rf'({param_name}\s*=\s*)[^\n,]+')
-    updated_method_call = pattern.sub(fr'\1"{new_value}"', method_call)
+# Check if there are any unclosed parentheses, and add closing parentheses if needed
+    open_paren_count = updated_method_call.count('(')
+    close_paren_count = updated_method_call.count(')')
+    if open_paren_count > close_paren_count:
+        updated_method_call += ')' * (open_paren_count - close_paren_count)
     
-    # Add a closing parenthesis if it was the last parameter in the method call
-    if updated_method_call[-1] == ',':
-        updated_method_call = updated_method_call[:-1] + ')'
+    return updated_method_call
