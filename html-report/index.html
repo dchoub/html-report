@@ -33,3 +33,26 @@ def update_test_case(python_code, variable_mapping, method_param_mapping):
 pattern = re.compile(rf'({param_name}\s*=\s*)([^,\s]+)')
     
 updated_method_call = pattern.sub(fr'\1{new_value}', method_call)
+
+
+
+
+
+
+import pandas as pd
+from collections import Counter
+
+# Sample lists with potential duplicates
+variable_names = ['var1', 'var2', 'var1', 'var3']
+method_params = ['param1', 'param2', 'param1', 'param3']
+
+# Count occurrences of each variable/method
+variable_counts = Counter(variable_names)
+method_counts = Counter(method_params)
+
+# Create a DataFrame with unique column names
+df = pd.DataFrame({f'{name}_{i+1}' if count > 1 else name: [] for name, count in variable_counts.items()})
+df.update(pd.DataFrame({f'{name}_{i+1}' if count > 1 else name: [] for name, count in method_counts.items()}))
+
+print(df.columns.tolist())  # Print column names
+
