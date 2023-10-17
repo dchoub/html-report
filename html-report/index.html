@@ -63,3 +63,8 @@ df.to_excel(excel_file_path, index=False)
 print('DataFrame saved to Excel with modified column names.')
 
 
+
+# Append a suffix to make column names unique
+df.columns = df.columns.astype(str) + df.groupby(df.columns.tolist()).cumcount().astype(str).replace('0', '')
+
+
