@@ -46,13 +46,20 @@ from collections import Counter
 variable_names = ['var1', 'var2', 'var1', 'var3']
 method_params = ['param1', 'param2', 'param1', 'param3']
 
-# Count occurrences of each variable/method
-variable_counts = Counter(variable_names)
-method_counts = Counter(method_params)
+# Combine the lists and count occurrences
+all_names = variable_names + method_params
+name_counts = Counter(all_names)
 
-# Create a DataFrame with unique column names
-df = pd.DataFrame({f'{name}_{i+1}' if count > 1 else name: [] for name, count in variable_counts.items()})
-df.update(pd.DataFrame({f'{name}_{i+1}' if count > 1 else name: [] for name, count in method_counts.items()}))
+# Create a DataFrame with unique column names (including counters for duplicates)
+df = pd.DataFrame({f'{name} ({count})' if count > 1 else name: [] for name, count in name_counts.items()})
 
-print(df.columns.tolist())  # Print column names
+# Remove counters from column names
+df.columns = df.columns.str.replace(r' \(\d+\)', '')
+
+# Write to Excel with modified column names
+excel_file_path = 'output.xlsx'
+df.to_excel(excel_file_path, index=False)
+
+print('DataFrame saved to Excel with modified column names.')
+
 
