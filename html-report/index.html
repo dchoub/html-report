@@ -50,11 +50,16 @@ method_params = ['param1', 'param2', 'param1', 'param3']
 all_names = variable_names + method_params
 name_counts = Counter(all_names)
 
-# Create a DataFrame with unique column names (including counters for duplicates)
-df = pd.DataFrame({f'{name} ({count})' if count > 1 else name: [] for name, count in name_counts.items()})
+# Modify the column names to add a suffix only for duplicates
+column_names = []
+for name, count in name_counts.items():
+    if count > 1:
+        column_names.extend([f'{name} ({i+1})' for i in range(count)])
+    else:
+        column_names.append(name)
 
-# Remove counters from column names
-df.columns = df.columns.str.replace(r' \(\d+\)', '')
+# Create a DataFrame with modified column names
+df = pd.DataFrame({name: [] for name in column_names})
 
 # Write to Excel with modified column names
 excel_file_path = 'output.xlsx'
@@ -62,9 +67,5 @@ df.to_excel(excel_file_path, index=False)
 
 print('DataFrame saved to Excel with modified column names.')
 
-
-
-# Append a suffix to make column names unique
-df.columns = df.columns.astype(str) + df.groupby(df.columns.tolist()).cumcount().astype(str).replace('0', '')
 
 
