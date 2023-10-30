@@ -56,3 +56,27 @@ if param_variables:
 
 if param_method_params:
     print(f"Parameterized Method Parameters: {', '.join(param_method_params)}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+for method_node in ast.walk(node):
+                        if isinstance(method_node, ast.Call):
+                            for kw in method_node.keywords:
+                                kw_value = kw.value
+                                if isinstance(kw_value, ast.Name) and kw_value.id == kw.arg:
+                                    if kw_value.id not in param_variables:
+                                        param_method_params.add(kw.arg)
+                                elif isinstance(kw_value, ast.FormattedValue):
+                                    # Check if the value is enclosed in curly braces {}
+                                    if isinstance(kw_value.value, ast.Name) and kw_value.value.id == kw.arg:
+                                        param_method_params.add(kw.arg)
