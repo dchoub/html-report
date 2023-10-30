@@ -22,12 +22,13 @@ def extract_test_main_content(file_path):
                     for method_node in ast.walk(node):
                         if isinstance(method_node, ast.Call):
                             for kw in method_node.keywords:
-                                kw_value_str = ast.dump(kw.value)
-                                kw_value = ast.dump(kw.value.elts[0]) if hasattr(kw.value, 'elts') else kw_value_str
-                                if ('{' in kw_value_str or '}' in kw_value_str or '"' in kw_value_str):
+                                kw_value = kw.value
+                                if (
+                                    isinstance(kw_value, ast.Name) and
+                                    kw_value.id == kw.arg and
+                                    kw.arg not in param_variables
+                                ):
                                     param_method_params.add(kw.arg)
-                                    if ('{' in kw_value or '}' in kw_value or '"' in kw_value):
-                                        param_method_params.add(kw.arg)
 
                     return list(param_variables), list(param_method_params)
         except SyntaxError as e:
