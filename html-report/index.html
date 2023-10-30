@@ -22,10 +22,11 @@ def extract_test_main_content(file_path):
                     for method_node in ast.walk(node):
                         if isinstance(method_node, ast.Call):
                             for kw in method_node.keywords:
-                                if isinstance(kw.value, ast.Str):
-                                    value = kw.value
-                                    value_str = ast.dump(value)
-                                    if ('{' in value_str or '}' in value_str or '"' in value_str):
+                                kw_value_str = ast.dump(kw.value)
+                                kw_value = ast.dump(kw.value.elts[0]) if hasattr(kw.value, 'elts') else kw_value_str
+                                if ('{' in kw_value_str or '}' in kw_value_str or '"' in kw_value_str):
+                                    param_method_params.add(kw.arg)
+                                    if ('{' in kw_value or '}' in kw_value or '"' in kw_value):
                                         param_method_params.add(kw.arg)
 
                     return list(param_variables), list(param_method_params)
