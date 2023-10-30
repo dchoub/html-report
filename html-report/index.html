@@ -8,29 +8,28 @@ def extract_test_main_content(file_path):
             tree = ast.parse(file.read())
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef) and node.name == 'test_main':
-                    # Extract variable names within the test_main function
-                    variable_names = []
+                    # Extract variable names and method parameters that are parameterized
+                    variable_names = set()
+                    method_params = set()
                     for var in ast.walk(node):
                         if isinstance(var, ast.Name) and not isinstance(var.ctx, ast.Load):
-                            variable_names.append(var.id)
-                    # Extract method parameters within the test_main function that are parameterized
-                    method_params = []
+                            variable_names.add(var.id)
                     for method_node in ast.walk(node):
                         if isinstance(method_node, ast.Call):
                             for kw in method_node.keywords:
-                                if isinstance(kw.value, (ast.Str, ast.FormattedValue)):
+                                if isinstance(kw.value, ast.Str):
                                     value = kw.value.s
                                     if '{' in value or '}' in value or '"' in value:
-                                        method_params.append(kw.arg)
+                                        method_params.add(kw.arg)
 
                     # Extract code within the test_main function
                     code = ast.dump(node)
 
-                    return variable_names, method_params, code
+                    return list(variable_names), list(method_params), code
         except SyntaxError as e:
             print(f"Syntax error in {file_path}: {e})
 
-    return None, None
+    return None, None, None
 
 # Input Python file path
 python_file_path = 'your_python_file.py'
