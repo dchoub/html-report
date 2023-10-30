@@ -1,53 +1,56 @@
 import ast
 import pandas as pd
 
-# Function to extract method parameters and variables within the test_main function
+# Function to extract parameterized variables and method parameters within the test_main function
 def extract_test_main_content(file_path):
     with open(file_path, 'r') as file:
         try:
             tree = ast.parse(file.read())
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef) and node.name == 'test_main':
-                    variable_names = set()
-                    method_params = set()
+                    param_variables = set()
+                    param_method_params = set()
                     for var in ast.walk(node):
-                        if isinstance(var, ast.Name) and not isinstance(var.ctx, ast.Load):
-                            variable_names.add(var.id)
+                        if isinstance(var, ast.Assign):
+                            for target in var.targets:
+                                if isinstance(target, ast.Name):
+                                    value = var.value
+                                    if isinstance(value, (ast.Str, ast.FormattedValue)):
+                                        value_str = ast.dump(value)
+                                        if ('{' in value_str or '}' in value_str or '"' in value_str):
+                                            param_variables.add(target.id)
                     for method_node in ast.walk(node):
                         if isinstance(method_node, ast.Call):
                             for kw in method_node.keywords:
                                 if isinstance(kw.value, ast.Str):
-                                    value = kw.value.s
-                                    if ('{' in value or '}' in value or '"' in value) and kw.arg:
-                                        method_params.add(kw.arg)
+                                    value = kw.value
+                                    value_str = ast.dump(value)
+                                    if ('{' in value_str or '}' in value_str or '"' in value_str):
+                                        param_method_params.add(kw.arg)
 
-                    return list(variable_names), list(method_params)
+                    return list(param_variables), list(param_method_params)
         except SyntaxError as e:
-            print(f"Syntax error in {file_path}: {e}")
+            print(f"Syntax error in {file_path}: {e})
 
     return None, None
 
 # Input Python file path
 python_file_path = 'your_python_file.py'
 
-# Extract variable names and method parameters within the test_main function
-variable_names, method_params = extract_test_main_content(python_file_path)
+# Extract parameterized variable names and method parameters within the test_main function
+param_variables, param_method_params = extract_test_main_content(python_file_path)
 
-# Filter for parameterized variables and method parameters
-filtered_variable_names = [var for var in variable_names if ('{' in var or '}' in var)]
-filtered_method_params = [param for param in method_params if ('{' in param or '}' in param)]
-
-# Create a DataFrame with variable names and method parameters as column headers
-if filtered_variable_names or filtered_method_params:
-    param_variables = filtered_variable_names + filtered_method_params
-    df = pd.DataFrame({pv: [] for pv in param_variables})
+# Create a DataFrame with parameterized variable names and method parameters as column headers
+if param_variables or param_method_params:
+    param_variables_and_method_params = param_variables + param_method_params
+    df = pd.DataFrame({var: [] for var in param_variables_and_method_params})
     excel_output_file = 'output.xlsx'
     df.to_excel(excel_output_file, index=False)
     print(f"Parameterized variable names and method parameters extracted and saved to {excel_output_file}.")
 
 # Print parameterized variable names and method parameters
-if filtered_variable_names:
-    print(f"Parameterized Variable Names: {', '.join(filtered_variable_names)}")
+if param_variables:
+    print(f"Parameterized Variable Names: {', '.join(param_variables)}")
 
-if filtered_method_params:
-    print(f"Parameterized Method Parameters: {', '.join(filtered_method_params)}")
+if param_method_params:
+    print(f"Parameterized Method Parameters: {', '.join(param_method_params)}")
