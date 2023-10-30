@@ -1,71 +1,54 @@
-pattern = re.compile(rf'({column}\s*=\s*)[^\s,]+')
-python_code = pattern.sub(lambda match: update_method_parameter(match.group(), 'method_param1', excel_value), python_code)
-
-
-
-# Function to update a specific method parameter value in a method call
-def update_method_parameter(method_call, param_name, new_value):
-    # Regular expression to match the parameter and its value
-    pattern = re.compile(rf'({param_name}\s*=\s*)[^\s,]+')
-
-    # Update the parameter value in the method call
-    updated_method_call = pattern.sub(fr'\1"{new_value}"', method_call)
-
-    return updated_method_call
-
-
-
-
-
-
-
-def update_test_case(python_code, variable_mapping, method_param_mapping):
-    for var_name, var_value in variable_mapping.items():
-        python_code = python_code.replace(f'{{{var_name}}}', var_value)
-    
-    for param_name, param_value in method_param_mapping.items():
-        pattern = re.compile(rf'({param_name}\s*=\s*)[^\s,]+')
-        python_code = pattern.sub(fr'\1"{param_value}"', python_code)
-    
-    return python_code
-
-
-pattern = re.compile(rf'({param_name}\s*=\s*)([^,\s]+)')
-    
-updated_method_call = pattern.sub(fr'\1{new_value}', method_call)
-
-
-
-
-
-
+import ast
 import pandas as pd
-from collections import Counter
 
-# Sample lists with potential duplicates
-variable_names = ['var1', 'var2', 'var1', 'var3']
-method_params = ['param1', 'param2', 'param1', 'param3']
+# Function to extract method parameters and variables within the test_main function
+def extract_test_main_content(file_path):
+    with open(file_path, 'r') as file:
+        try:
+            tree = ast.parse(file.read())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) and node.name == 'test_main':
+                    # Extract variable names within the test_main function
+                    variable_names = []
+                    for var in ast.walk(node):
+                        if isinstance(var, ast.Name) and not isinstance(var.ctx, ast.Load):
+                            variable_names.append(var.id)
+                    # Extract method parameters within the test_main function that are parameterized
+                    method_params = []
+                    for method_node in ast.walk(node):
+                        if isinstance(method_node, ast.Call):
+                            for kw in method_node.keywords:
+                                if isinstance(kw.value, (ast.Str, ast.FormattedValue)):
+                                    value = kw.value.s
+                                    if '{' in value or '}' in value or '"' in value:
+                                        method_params.append(kw.arg)
 
-# Combine the lists and count occurrences
-all_names = variable_names + method_params
-name_counts = Counter(all_names)
+                    # Extract code within the test_main function
+                    code = ast.dump(node)
 
-# Modify the column names to add a suffix only for duplicates
-column_names = []
-for name, count in name_counts.items():
-    if count > 1:
-        column_names.extend([f'{name} ({i+1})' for i in range(count)])
-    else:
-        column_names.append(name)
+                    return variable_names, method_params, code
+        except SyntaxError as e:
+            print(f"Syntax error in {file_path}: {e})
 
-# Create a DataFrame with modified column names
-df = pd.DataFrame({name: [] for name in column_names})
+    return None, None
 
-# Write to Excel with modified column names
-excel_file_path = 'output.xlsx'
-df.to_excel(excel_file_path, index=False)
+# Input Python file path
+python_file_path = 'your_python_file.py'
 
-print('DataFrame saved to Excel with modified column names.')
+# Extract variable names and method parameters within the test_main function
+variable_names, method_params, code = extract_test_main_content(python_file_path)
 
+# Create a DataFrame with variable names and method parameters as column headers
+if variable_names or method_params:
+    param_variables = variable_names + method_params
+    df = pd.DataFrame({pv: [] for pv in param_variables})
+    excel_output_file = 'output.xlsx'
+    df.to_excel(excel_output_file, index=False)
+    print(f"Variable names and method parameters extracted and saved to {excel_output_file}.")
 
+# Print variable names and method parameters
+if variable_names:
+    print(f"Variable Names: {', '.join(variable_names)}")
 
+if method_params:
+    print(f"Method Parameters: {', '.join(method_params)}")
