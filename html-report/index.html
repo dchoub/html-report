@@ -79,3 +79,30 @@ for method_node in ast.walk(node):
                                     kw_value.values[0].value.id == kw.arg
                                 ):
                                     param_method_params.add(kw.arg)
+
+
+
+
+
+
+# Read the template file and existing test case file
+with open('template.py', 'r') as template_file, open('test_case.py', 'r') as test_case_file:
+    template_lines = template_file.readlines()
+    test_case_lines = test_case_file.readlines()
+
+# Initialize a variable to keep track of the current line number
+current_line_number = 0
+
+# Iterate through template lines and add them to the corresponding positions in the test case file
+for template_line in template_lines:
+    if current_line_number < len(test_case_lines):
+        # If there are more lines in the test case file, insert the template line at the same position
+        test_case_lines.insert(current_line_number, template_line)
+    else:
+        # If the test case file is shorter, append the remaining template lines
+        test_case_lines.append(template_line)
+    current_line_number += 1
+
+# Write the updated test case file
+with open('test_case.py', 'w') as test_case_file:
+    test_case_file.writelines(test_case_lines)
