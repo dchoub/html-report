@@ -90,19 +90,13 @@ with open('template.py', 'r') as template_file, open('test_case.py', 'r') as tes
     template_lines = template_file.readlines()
     test_case_lines = test_case_file.readlines()
 
-# Initialize a variable to keep track of the current line number
-current_line_number = 0
+# Find the lines from the template file that are not already in the test case
+new_lines = [line for line in template_lines if line not in test_case_lines]
 
-# Iterate through template lines and add them to the corresponding positions in the test case file
-for template_line in template_lines:
-    if current_line_number < len(test_case_lines):
-        # If there are more lines in the test case file, insert the template line at the same position
-        test_case_lines.insert(current_line_number, template_line)
-    else:
-        # If the test case file is shorter, append the remaining template lines
-        test_case_lines.append(template_line)
-    current_line_number += 1
+# Append the new lines to the existing test case file
+with open('test_case.py', 'a') as test_case_file:
+    for line in new_lines:
+        test_case_file.write(line)
 
-# Write the updated test case file
-with open('test_case.py', 'w') as test_case_file:
-    test_case_file.writelines(test_case_lines)
+# The new lines from the template file are added to the existing test case
+
