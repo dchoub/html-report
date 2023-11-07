@@ -97,6 +97,9 @@ test_case_index = 0
 # Initialize a flag to check if a new line has been added
 new_line_added = False
 
+# Define a pattern for identifying parameterized variables
+param_pattern = re.compile(r'{[^}]*}')
+
 # Loop through the template lines
 while template_index < len(template_lines):
     # Get the current lines from both files
@@ -108,6 +111,9 @@ while template_index < len(template_lines):
         # Lines match, move to the next lines
         template_index += 1
         test_case_index += 1
+    elif param_pattern.search(template_line):
+        # Template line contains a parameterized variable, skip it
+        template_index += 1
     else:
         # Lines don't match, add the template line to the test case at the appropriate position
         test_case_lines.insert(test_case_index, template_line)
@@ -123,5 +129,6 @@ if new_line_added:
     print("New lines from the template file have been added to the existing test case.")
 else:
     print("No new lines were added.")
+
 
 
