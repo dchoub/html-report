@@ -90,13 +90,38 @@ with open('template.py', 'r') as template_file, open('test_case.py', 'r') as tes
     template_lines = template_file.readlines()
     test_case_lines = test_case_file.readlines()
 
-# Find the lines from the template file that are not already in the test case
-new_lines = [line for line in template_lines if line not in test_case_lines]
+# Initialize indices for template and test case lines
+template_index = 0
+test_case_index = 0
 
-# Append the new lines to the existing test case file
-with open('test_case.py', 'a') as test_case_file:
-    for line in new_lines:
-        test_case_file.write(line)
+# Initialize a flag to check if a new line has been added
+new_line_added = False
 
-# The new lines from the template file are added to the existing test case
+# Loop through the template lines
+while template_index < len(template_lines):
+    # Get the current lines from both files
+    template_line = template_lines[template_index]
+    test_case_line = test_case_lines[test_case_index] if test_case_index < len(test_case_lines) else None
+
+    # Compare the lines
+    if template_line == test_case_line:
+        # Lines match, move to the next lines
+        template_index += 1
+        test_case_index += 1
+    else:
+        # Lines don't match, add the template line to the test case at the appropriate position
+        test_case_lines.insert(test_case_index, template_line)
+        new_line_added = True
+        template_index += 1
+
+# Write the updated test case file
+with open('test_case.py', 'w') as test_case_file:
+    test_case_file.writelines(test_case_lines)
+
+# Check if any new lines were added
+if new_line_added:
+    print("New lines from the template file have been added to the existing test case.")
+else:
+    print("No new lines were added.")
+
 
