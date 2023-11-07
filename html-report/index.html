@@ -1,150 +1,41 @@
-import ast
-import pandas as pd
-
-# Function to extract parameterized variables and method parameters within the test_main function
-def extract_test_main_content(file_path):
-    with open(file_path, 'r') as file:
-        try:
-            tree = ast.parse(file.read())
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef) and node.name == 'test_main':
-                    param_variables = set()
-                    param_method_params = set()
-                    for var in ast.walk(node):
-                        if isinstance(var, ast.Assign):
-                            for target in var.targets:
-                                if isinstance(target, ast.Name):
-                                    value = var.value
-                                    if isinstance(value, (ast.Str, ast.FormattedValue)):
-                                        value_str = ast.dump(value)
-                                        if ('{' in value_str or '}' in value_str or '"' in value_str):
-                                            param_variables.add(target.id)
-                    for method_node in ast.walk(node):
-                        if isinstance(method_node, ast.Call):
-                            for kw in method_node.keywords:
-                                kw_value = kw.value
-                                if (
-                                    isinstance(kw_value, ast.Name) and
-                                    kw_value.id == kw.arg and
-                                    kw.arg not in param_variables
-                                ):
-                                    param_method_params.add(kw.arg)
-
-                    return list(param_variables), list(param_method_params)
-        except SyntaxError as e:
-            print(f"Syntax error in {file_path}: {e})
-
-    return None, None
-
-# Input Python file path
-python_file_path = 'your_python_file.py'
-
-# Extract parameterized variable names and method parameters within the test_main function
-param_variables, param_method_params = extract_test_main_content(python_file_path)
-
-# Create a DataFrame with parameterized variable names and method parameters as column headers
-if param_variables or param_method_params:
-    param_variables_and_method_params = param_variables + param_method_params
-    df = pd.DataFrame({var: [] for var in param_variables_and_method_params})
-    excel_output_file = 'output.xlsx'
-    df.to_excel(excel_output_file, index=False)
-    print(f"Parameterized variable names and method parameters extracted and saved to {excel_output_file}.")
-
-# Print parameterized variable names and method parameters
-if param_variables:
-    print(f"Parameterized Variable Names: {', '.join(param_variables)}")
-
-if param_method_params:
-    print(f"Parameterized Method Parameters: {', '.join(param_method_params)}")
-
-
-
-
-
-
-
-
-
-
-
-for method_node in ast.walk(node):
-                        if isinstance(method_node, ast.Call):
-                            for kw in method_node.keywords:
-                                kw_value = kw.value
-                                if (
-                                    isinstance(kw_value, ast.JoinedStr) and
-                                    len(kw_value.values) == 1 and
-                                    isinstance(kw_value.values[0], ast.FormattedValue) and
-                                    isinstance(kw_value.values[0].value, ast.Name) and
-                                    kw_value.values[0].value.id == kw.arg
-                                ):
-                                    param_method_params.add(kw.arg)
-
-
-
-
+import difflib
 
 # Read the template file and existing test case file
 with open('template.py', 'r') as template_file, open('test_case.py', 'r') as test_case_file:
     template_lines = template_file.readlines()
     test_case_lines = test_case_file.readlines()
 
-# Initialize indices for template and test case lines
-template_index = 0
-test_case_index = 0
+# Create a differ object
+differ = difflib.Differ()
 
-# Initialize a flag to check if a new line has been added
-new_line_added = False
+# Compute the differences between the two files
+diff = list(differ.compare(template_lines, test_case_lines))
 
-# Define a pattern for identifying parameterized variables
-param_pattern = re.compile(r'{[^}]*}')
+# Define a function to filter lines that should not be added
+def should_add(line):
+    # Add custom logic here to determine if a line should be added or not
+    # For example, skip lines starting with "import" and lines containing parameterized variables
+    return not line.startswith('import ') and not ('{' in line or '}' in line)
 
-# Loop through the template lines
-while template_index < len(template_lines):
-    # Get the current lines from both files
-    template_line = template_lines[template_index]
-    test_case_line = test_case_lines[test_case_index] if test_case_index < len(test_case_lines) else None
-
-    # Check if the template line contains a parameterized variable
-    if param_pattern.search(template_line):
-        # Skip the template line as it contains a parameterized variable
-        template_index += 1
-    else:
-        # Check if the lines match
-        if template_line == test_case_line:
-            # Lines match, move to the next lines
-            template_index += 1
-            test_case_index += 1
+# Merge the lines from the template into the test case
+merged_lines = []
+add_next_line = False  # Flag to handle multiline variable values
+for line in diff:
+    if line.startswith('  '):
+        # Lines present in both files, add to merged lines
+        if not add_next_line:
+            merged_lines.append(line[2:])
         else:
-            # Lines don't match, add the template line to the test case at the appropriate position
-            if '"""' in template_line:
-                # Multiline content detected, add until matching closing triple-double-quotes
-                test_case_lines.insert(test_case_index, template_line)
-                test_case_index += 1
-                template_index += 1
-                while template_index < len(template_lines):
-                    test_case_lines.insert(test_case_index, template_lines[template_index])
-                    test_case_index += 1
-                    template_index += 1
-                    if '"""' in template_lines[template_index - 1]:
-                        break
-            else:
-                test_case_lines.insert(test_case_index, template_line)
-                new_line_added = True
-                test_case_index += 1
-                template_index += 1
+            # Handle multiline variable values
+            merged_lines[-1] += line[2:]
+            add_next_line = False
+    elif line.startswith('- ') and should_add(line[2:]):
+        # Lines present in the test case but not in the template, add to merged lines
+        merged_lines.append(line[2:])
+        if line[2:].endswith('{') or line[2:].endswith('"""{') or line[2:].endswith("'{"):
+            # Flag to indicate that the next line should be added
+            add_next_line = True
 
 # Write the updated test case file
 with open('test_case.py', 'w') as test_case_file:
-    test_case_file.writelines(test_case_lines)
-
-# Check if any new lines were added
-if new_line_added:
-    print("New lines from the template file have been added to the existing test case.")
-else:
-    print("No new lines were added.")
-
-
-
-
-
+    test_case_file.writelines(merged_lines)
