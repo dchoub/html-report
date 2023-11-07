@@ -117,9 +117,22 @@ while template_index < len(template_lines):
             test_case_index += 1
         else:
             # Lines don't match, add the template line to the test case at the appropriate position
-            test_case_lines.insert(test_case_index, template_line)
-            new_line_added = True
-            template_index += 1
+            if '"""' in template_line:
+                # Multiline content detected, add until matching closing triple-double-quotes
+                test_case_lines.insert(test_case_index, template_line)
+                test_case_index += 1
+                template_index += 1
+                while template_index < len(template_lines):
+                    test_case_lines.insert(test_case_index, template_lines[template_index])
+                    test_case_index += 1
+                    template_index += 1
+                    if '"""' in template_lines[template_index - 1]:
+                        break
+            else:
+                test_case_lines.insert(test_case_index, template_line)
+                new_line_added = True
+                test_case_index += 1
+                template_index += 1
 
 # Write the updated test case file
 with open('test_case.py', 'w') as test_case_file:
@@ -130,6 +143,7 @@ if new_line_added:
     print("New lines from the template file have been added to the existing test case.")
 else:
     print("No new lines were added.")
+
 
 
 
