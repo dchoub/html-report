@@ -84,7 +84,6 @@ for method_node in ast.walk(node):
 
 
 
-
 # Read the template file and existing test case file
 with open('template.py', 'r') as template_file, open('test_case.py', 'r') as test_case_file:
     template_lines = template_file.readlines()
@@ -106,19 +105,21 @@ while template_index < len(template_lines):
     template_line = template_lines[template_index]
     test_case_line = test_case_lines[test_case_index] if test_case_index < len(test_case_lines) else None
 
-    # Compare the lines
-    if template_line == test_case_line:
-        # Lines match, move to the next lines
-        template_index += 1
-        test_case_index += 1
-    elif param_pattern.search(template_line):
-        # Template line contains a parameterized variable, skip it
+    # Check if the template line contains a parameterized variable
+    if param_pattern.search(template_line):
+        # Skip the template line as it contains a parameterized variable
         template_index += 1
     else:
-        # Lines don't match, add the template line to the test case at the appropriate position
-        test_case_lines.insert(test_case_index, template_line)
-        new_line_added = True
-        template_index += 1
+        # Check if the lines match
+        if template_line == test_case_line:
+            # Lines match, move to the next lines
+            template_index += 1
+            test_case_index += 1
+        else:
+            # Lines don't match, add the template line to the test case at the appropriate position
+            test_case_lines.insert(test_case_index, template_line)
+            new_line_added = True
+            template_index += 1
 
 # Write the updated test case file
 with open('test_case.py', 'w') as test_case_file:
@@ -129,6 +130,7 @@ if new_line_added:
     print("New lines from the template file have been added to the existing test case.")
 else:
     print("No new lines were added.")
+
 
 
 
