@@ -57,3 +57,15 @@ if new_line_added:
     print("New lines from the template file have been added to the existing test case.")
 else:
     print("No new lines were added.")
+
+
+
+import re
+
+# Your code to replace variables
+pattern = re.compile(rf'({column}\s*=\s*["\']{3}).*?["\']{3}', re.DOTALL)
+python_code = pattern.sub(lambda match: _replace_variable(match, new_value), python_code)
+
+def _replace_variable(match, new_value):
+    return f'{match.group(1)}{new_value}{match.group(1)}'
+
