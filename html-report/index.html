@@ -63,11 +63,12 @@ else:
 import re
 
 # Your code to replace variables
-pattern = re.compile(rf'({column}\s*=\s*["\'])(.*?)(["\'])', re.DOTALL)
+pattern = re.compile(rf'({column}\s*=\s*["\']{3})(.*?)(["\']{3})', re.DOTALL)
 python_code = pattern.sub(lambda match: _replace_variable(match, new_value), python_code)
 
 def _replace_variable(match, new_value):
     return f'{match.group(1)}{new_value}{match.group(3)}'
+
 
 
 
