@@ -1,79 +1,13 @@
-# Read the template file and existing test case file
-with open('template.py', 'r') as template_file, open('test_case.py', 'r') as test_case_file:
-    template_lines = template_file.readlines()
-    test_case_lines = test_case_file.readlines()
+def check_subfolders_for_project_content(content_data, repo_url, username, password, branch):
+    # Check each subfolder for the presence of "project.content"
+    for item in content_data.get("values", []):
+        if item["type"] == "DIRECTORY":
+            subfolder_url = f"{repo_url}/src/{branch}/{item['path']['name']}"
+            subfolder_response = requests.get(subfolder_url, auth=(username, password))
 
-# Initialize indices for template and test case lines
-template_index = 0
-test_case_index = 0
+            if subfolder_response.status_code == 200:
+                # Recursively check the subfolder
+                if has_project_content_file_recursive(repo_url, username, password, branch):
+                    return True
 
-# Initialize a flag to check if a new line has been added
-new_line_added = False
-
-# Define a pattern for identifying parameterized variables
-param_pattern = re.compile(r'{[^}]*}')
-
-# Loop through the template lines
-while template_index < len(template_lines):
-    # Get the current lines from both files
-    template_line = template_lines[template_index]
-    test_case_line = test_case_lines[test_case_index] if test_case_index < len(test_case_lines) else None
-
-    # Check if the template line contains a parameterized variable
-    if param_pattern.search(template_line):
-        # Skip the template line as it contains a parameterized variable
-        template_index += 1
-    else:
-        # Check if the lines match
-        if template_line == test_case_line:
-            # Lines match, move to the next lines
-            template_index += 1
-            test_case_index += 1
-        else:
-            # Lines don't match, add the template line to the test case at the appropriate position
-            if '"""' in template_line:
-                # Multiline content detected, add until matching closing triple-double-quotes
-                test_case_lines.insert(test_case_index, template_line)
-                test_case_index += 1
-                template_index += 1
-                while template_index < len(template_lines):
-                    test_case_lines.insert(test_case_index, template_lines[template_index])
-                    test_case_index += 1
-                    template_index += 1
-                    if '"""' in template_lines[template_index - 1]:
-                        break
-            else:
-                test_case_lines.insert(test_case_index, template_line)
-                new_line_added = True
-                test_case_index += 1
-                template_index += 1
-
-# Write the updated test case file
-with open('test_case.py', 'w') as test_case_file:
-    test_case_file.writelines(test_case_lines)
-
-# Check if any new lines were added
-if new_line_added:
-    print("New lines from the template file have been added to the existing test case.")
-else:
-    print("No new lines were added.")
-
-
-
-import re
-
-# Your code to replace variables
-pattern = re.compile(rf'({column}\s*=\s*["\']{3})(.*?)(["\']{3})', re.DOTALL)
-python_code = pattern.sub(lambda match: _replace_variable(match, new_value), python_code)
-
-def _replace_variable(match, new_value):
-    return f'{match.group(1)}{new_value}{match.group(3)}'
-
-
-
-
-
-
-
-
-
+    return False
